@@ -14,7 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      members: {
+        Row: {
+          created_at: string
+          id: string
+          is_manual_entry: boolean
+          is_submitted: boolean
+          name: string
+          order_status: string
+          phone_number: string
+          submitted_at: string | null
+          tshirt_size: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_manual_entry?: boolean
+          is_submitted?: boolean
+          name: string
+          order_status?: string
+          phone_number?: string
+          submitted_at?: string | null
+          tshirt_size?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_manual_entry?: boolean
+          is_submitted?: boolean
+          name?: string
+          order_status?: string
+          phone_number?: string
+          submitted_at?: string | null
+          tshirt_size?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
