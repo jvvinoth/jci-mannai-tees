@@ -9,6 +9,7 @@ import MemberSearch from "@/components/MemberSearch";
 import SizeSelector from "@/components/SizeSelector";
 import SuccessView from "@/components/SuccessView";
 import SubmissionList from "@/components/SubmissionList";
+import AllSubmissions from "@/components/AllSubmissions";
 import SizeChart from "@/components/SizeChart";
 import AdminPanel from "@/components/AdminPanel";
 import { getMembers, type Member } from "@/lib/members";
