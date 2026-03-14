@@ -17,15 +17,18 @@ interface AdminPanelProps {
   onClose: () => void;
 }
 
-const StatusBadge = ({ status, onClick }: { status: OrderStatus; onClick?: () => void }) => {
+const StatusBadge = ({ status, onChange }: { status: OrderStatus; onChange: (s: OrderStatus) => void }) => {
   const cfg = ORDER_STATUSES.find(s => s.value === status)!;
   return (
-    <button
-      onClick={onClick}
-      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold transition-colors ${cfg.color} ${onClick ? 'cursor-pointer hover:opacity-80' : ''}`}
+    <select
+      value={status}
+      onChange={(e) => onChange(e.target.value as OrderStatus)}
+      className={`rounded-full px-2.5 py-0.5 text-xs font-semibold border-none outline-none cursor-pointer ${cfg.color}`}
     >
-      {cfg.label}
-    </button>
+      {ORDER_STATUSES.map(s => (
+        <option key={s.value} value={s.value}>{s.label}</option>
+      ))}
+    </select>
   );
 };
 
