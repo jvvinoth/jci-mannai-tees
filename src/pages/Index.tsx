@@ -9,11 +9,12 @@ import MemberSearch from "@/components/MemberSearch";
 import SizeSelector from "@/components/SizeSelector";
 import SuccessView from "@/components/SuccessView";
 import SubmissionList from "@/components/SubmissionList";
+import AllSubmissions from "@/components/AllSubmissions";
 import SizeChart from "@/components/SizeChart";
 import AdminPanel from "@/components/AdminPanel";
 import { getMembers, type Member } from "@/lib/members";
 
-type Step = "home" | "search" | "size" | "success" | "error" | "admin";
+type Step = "home" | "search" | "size" | "success" | "error" | "admin" | "allSubmissions";
 
 const Index = () => {
   const [step, setStep] = useState<Step>("home");
@@ -94,7 +95,7 @@ const Index = () => {
               </Button>
 
               <SizeChart />
-              <SubmissionList />
+              <SubmissionList onViewAll={() => setStep("allSubmissions")} />
 
               {/* Admin & Share */}
               <div className="flex gap-3 pt-4">
@@ -170,6 +171,12 @@ const Index = () => {
           {step === "admin" && (
             <motion.div key="admin">
               <AdminPanel onClose={reset} />
+            </motion.div>
+          )}
+
+          {step === "allSubmissions" && (
+            <motion.div key="allSubmissions">
+              <AllSubmissions onBack={reset} />
             </motion.div>
           )}
         </AnimatePresence>
