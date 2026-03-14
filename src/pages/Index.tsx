@@ -14,7 +14,7 @@ import SizeChart from "@/components/SizeChart";
 import AdminPanel from "@/components/AdminPanel";
 import { getMembers, type Member } from "@/lib/members";
 
-type Step = "home" | "search" | "size" | "success" | "error" | "admin";
+type Step = "home" | "search" | "size" | "success" | "error" | "admin" | "allSubmissions";
 
 const Index = () => {
   const [step, setStep] = useState<Step>("home");
