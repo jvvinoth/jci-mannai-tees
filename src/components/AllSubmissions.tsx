@@ -1,15 +1,28 @@
-import { getMembers, maskPhone } from "@/lib/members";
+import { useState } from "react";
+import { getMembers, maskPhone, type TShirtSize } from "@/lib/members";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { ArrowLeft, Search } from "lucide-react";
 import { motion } from "framer-motion";
+
+const SIZES: TShirtSize[] = ['S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
 
 interface AllSubmissionsProps {
   onBack: () => void;
 }
 
 const AllSubmissions = ({ onBack }: AllSubmissionsProps) => {
+  const [search, setSearch] = useState("");
+  const [sizeFilter, setSizeFilter] = useState<TShirtSize | "ALL">("ALL");
+
   const submitted = getMembers().filter(m => m.is_submitted);
+
+  const filtered = submitted.filter(m => {
+    const matchesSearch = !search || m.name.toLowerCase().includes(search.toLowerCase());
+    const matchesSize = sizeFilter === "ALL" || m.tshirt_size === sizeFilter;
+    return matchesSearch && matchesSize;
+  });
 
   return (
     <motion.div
@@ -25,8 +38,46 @@ const AllSubmissions = ({ onBack }: AllSubmissionsProps) => {
         <h2 className="text-xl font-bold text-foreground">All Submissions ({submitted.length})</h2>
       </div>
 
+      {/* Search */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Search by name..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          className="pl-9"
+        />
+      </div>
+
+      {/* Size Filter */}
+      <div className="flex gap-2 flex-wrap">
+        <Button
+          size="sm"
+          variant={sizeFilter === "ALL" ? "default" : "outline"}
+          onClick={() => setSizeFilter("ALL")}
+          className="text-xs h-8"
+        >
+          All
+        </Button>
+        {SIZES.map(s => (
+          <Button
+            key={s}
+            size="sm"
+            variant={sizeFilter === s ? "default" : "outline"}
+            onClick={() => setSizeFilter(s)}
+            className="text-xs h-8"
+          >
+            {s}
+          </Button>
+        ))}
+      </div>
+
+      {/* Results count */}
+      <p className="text-xs text-muted-foreground">{filtered.length} result{filtered.length !== 1 ? 's' : ''}</p>
+
+      {/* List */}
       <div className="space-y-2">
-        {submitted.map((m, i) => (
+        {filtered.map((m, i) => (
           <div
             key={m.id}
             className="flex items-center justify-between p-3 bg-card rounded-xl border border-border"
@@ -48,6 +99,9 @@ const AllSubmissions = ({ onBack }: AllSubmissionsProps) => {
             </div>
           </div>
         ))}
+        {filtered.length === 0 && (
+          <p className="text-center text-muted-foreground py-6 text-sm">No matching submissions found.</p>
+        )}
       </div>
     </motion.div>
   );
