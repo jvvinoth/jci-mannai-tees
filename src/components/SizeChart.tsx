@@ -1,9 +1,19 @@
+import { useState, useEffect } from "react";
 import { getSizeDistribution, type TShirtSize } from "@/lib/members";
 import { motion } from "framer-motion";
 
-const SizeChart = () => {
-  const dist = getSizeDistribution();
+interface SizeChartProps {
+  refreshKey?: number;
+}
+
+const SizeChart = ({ refreshKey }: SizeChartProps) => {
+  const [dist, setDist] = useState<Record<TShirtSize, number>>({ S: 0, M: 0, L: 0, XL: 0, XXL: 0, XXXL: 0 });
   const sizes: TShirtSize[] = ['S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
+
+  useEffect(() => {
+    getSizeDistribution().then(setDist);
+  }, [refreshKey]);
+
   const max = Math.max(...Object.values(dist), 1);
 
   return (
