@@ -118,7 +118,6 @@ export function updateMemberPhone(memberId: string, phone: string) {
     saveMembers(members);
   }
 }
-}
 
 export function findMember(query: string): Member[] {
   const members = getMembers();
