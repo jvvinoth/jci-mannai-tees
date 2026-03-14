@@ -87,7 +87,14 @@ const SubmissionList = ({ onViewAll, refreshKey }: SubmissionListProps) => {
         ))}
       </div>
       {submitted.length > 5 && onViewAll && (
-        <Button variant="outline" className="w-full gap-1" onClick={onViewAll}>View All ({submitted.length}) <ChevronRight className="h-4 w-4" /></Button>
+        <Button
+          variant="default"
+          className="w-full h-12 text-base font-semibold gap-2 rounded-xl shadow-md active:scale-95 transition-transform"
+          onClick={onViewAll}
+        >
+          View All {submitted.length} Submissions
+          <ChevronRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+        </Button>
       )}
     </div>
   );
