@@ -173,6 +173,12 @@ const Index = () => {
               <AdminPanel onClose={reset} />
             </motion.div>
           )}
+
+          {step === "allSubmissions" && (
+            <motion.div key="allSubmissions">
+              <AllSubmissions onBack={reset} />
+            </motion.div>
+          )}
         </AnimatePresence>
 
         {/* Footer */}
