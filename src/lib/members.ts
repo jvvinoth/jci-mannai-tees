@@ -2,6 +2,14 @@
 // For now using localStorage as the data store until Supabase is connected
 
 export type TShirtSize = 'S' | 'M' | 'L' | 'XL' | 'XXL' | 'XXXL';
+export type OrderStatus = 'pending' | 'printing' | 'ready' | 'distributed';
+
+export const ORDER_STATUSES: { value: OrderStatus; label: string; color: string }[] = [
+  { value: 'pending', label: 'Pending', color: 'bg-muted text-muted-foreground' },
+  { value: 'printing', label: 'Printing', color: 'bg-amber-100 text-amber-800' },
+  { value: 'ready', label: 'Ready', color: 'bg-blue-100 text-blue-800' },
+  { value: 'distributed', label: 'Distributed', color: 'bg-green-100 text-green-800' },
+];
 
 export interface Member {
   id: string;
@@ -11,6 +19,7 @@ export interface Member {
   is_submitted: boolean;
   submitted_at: string | null;
   is_manual_entry: boolean;
+  order_status: OrderStatus;
 }
 
 const STORAGE_KEY = 'jci_mannai_members';
