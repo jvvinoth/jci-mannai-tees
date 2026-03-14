@@ -27,7 +27,7 @@ const STORAGE_KEY = 'jci_mannai_members';
 // Real members list from JCI Mannai WhatsApp group - 70 already submitted
 const now = new Date().toISOString();
 const INITIAL_MEMBERS: Member[] = [
-  { id: '1', name: 'Jc. Mohamed Salman', phone_number: '', tshirt_size: 'XXXL', is_submitted: true, submitted_at: now, is_manual_entry: false },
+  { id: '1', name: 'Jc. Mohamed Salman', phone_number: '', tshirt_size: 'XXXL', is_submitted: true, submitted_at: now, is_manual_entry: false, order_status: 'pending' },
   { id: '2', name: 'JFS. N. Arun Gandhi', phone_number: '', tshirt_size: 'M', is_submitted: true, submitted_at: now, is_manual_entry: false },
   { id: '3', name: 'Jc. Soniya Gandhi', phone_number: '', tshirt_size: 'XXL', is_submitted: true, submitted_at: now, is_manual_entry: false },
   { id: '4', name: 'Jc. Naveen', phone_number: '', tshirt_size: 'M', is_submitted: true, submitted_at: now, is_manual_entry: false },
