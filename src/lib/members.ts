@@ -90,11 +90,20 @@ const INITIAL_MEMBERS: Member[] = [
   { id: '70', name: 'Jc. Achyta', phone_number: '', tshirt_size: 'XL', is_submitted: true, submitted_at: now, is_manual_entry: false },
 ];
 
+const DATA_VERSION_KEY = 'jci_mannai_data_version';
+const CURRENT_VERSION = '2'; // Bump this when INITIAL_MEMBERS changes
+
 export function getMembers(): Member[] {
+  const version = localStorage.getItem(DATA_VERSION_KEY);
+  if (version !== CURRENT_VERSION) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_MEMBERS));
+    localStorage.setItem(DATA_VERSION_KEY, CURRENT_VERSION);
+    return [...INITIAL_MEMBERS];
+  }
   const stored = localStorage.getItem(STORAGE_KEY);
   if (stored) return JSON.parse(stored);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_MEMBERS));
-  return INITIAL_MEMBERS;
+  return [...INITIAL_MEMBERS];
 }
 
 export function saveMembers(members: Member[]) {
