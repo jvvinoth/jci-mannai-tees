@@ -131,7 +131,7 @@ const Index = () => {
 
           {step === "search" && (
             <motion.div key="search" exit={{ opacity: 0, x: -20 }}>
-              <MemberSearch onSelect={handleMemberSelect} />
+              <MemberSearch onSelect={handleMemberSelect} onRefresh={forceRefresh} />
               <Button variant="ghost" onClick={reset} className="mt-4 text-muted-foreground">
                 ← Back
               </Button>
