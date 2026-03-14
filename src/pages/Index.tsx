@@ -96,7 +96,7 @@ const Index = () => {
                 <Button variant="outline" size="sm" asChild className="gap-1">
                   <a
                     href={`https://wa.me/?text=${encodeURIComponent(
-                      "JCI Mannai Members,\n\nPlease submit your T-shirt size using the link below:\n" + window.location.origin + "\n\nThank you!\nPowered by Mannai Turf50"
+                      "JCI Raja Mannargudi Members,\n\nPlease submit your T-shirt size using the link below:\n" + window.location.origin + "\n\nThank you!\nPowered by Mannai Turf50"
                     )}`}
                     target="_blank" rel="noopener noreferrer"
                   >
@@ -134,7 +134,7 @@ const Index = () => {
             <motion.div key="allSubmissions"><AllSubmissions onBack={reset} /></motion.div>
           )}
         </AnimatePresence>
-        <footer className="text-center text-xs text-muted-foreground pt-8 pb-4">© 2026 JCI Mannai · Powered by Mannai Turf50</footer>
+        <footer className="text-center text-xs text-muted-foreground pt-8 pb-4">© 2026 JCI Raja Mannargudi · Powered by Mannai Turf50</footer>
       </div>
     </div>
   );

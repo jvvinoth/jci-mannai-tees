@@ -9,7 +9,7 @@ interface SuccessViewProps {
 
 const SuccessView = ({ message, onReset }: SuccessViewProps) => {
   const shareText = encodeURIComponent(
-    "JCI Mannai Members,\n\nPlease submit your T-shirt size using the link below:\n" +
+    "JCI Raja Mannargudi Members,\n\nPlease submit your T-shirt size using the link below:\n" +
     window.location.origin +
     "\n\nThank you!\nPowered by Mannai Turf50"
   );
