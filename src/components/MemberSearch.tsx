@@ -1,20 +1,28 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, UserPlus } from "lucide-react";
+import { Search, UserPlus, Pencil, Check, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { findMember, addManualMember, type Member } from "@/lib/members";
+import { findMember, addManualMember, getMembers, saveMembers, maskPhone, type Member, type TShirtSize } from "@/lib/members";
+import { toast } from "sonner";
+
+const SIZES: TShirtSize[] = ['S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
 
 interface MemberSearchProps {
   onSelect: (member: Member) => void;
+  onRefresh?: () => void;
 }
 
-const MemberSearch = ({ onSelect }: MemberSearchProps) => {
+const MemberSearch = ({ onSelect, onRefresh }: MemberSearchProps) => {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Member[]>([]);
   const [showManual, setShowManual] = useState(false);
   const [manualName, setManualName] = useState("");
   const [manualPhone, setManualPhone] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editPhone, setEditPhone] = useState("");
+  const [editSize, setEditSize] = useState<TShirtSize>("L");
 
   const handleSearch = (q: string) => {
     setQuery(q);
@@ -25,11 +33,47 @@ const MemberSearch = ({ onSelect }: MemberSearchProps) => {
     }
   };
 
+  const refreshResults = () => {
+    if (query.trim().length >= 2) {
+      setResults(findMember(query));
+    }
+  };
+
   const handleManualSubmit = () => {
     if (!manualName.trim() || !manualPhone.trim()) return;
     const member = addManualMember(manualName.trim(), manualPhone.trim());
     onSelect(member);
   };
+
+  const startEdit = (m: Member) => {
+    setEditingId(m.id);
+    setEditName(m.name);
+    setEditPhone(m.phone_number);
+    setEditSize(m.tshirt_size || 'L');
+  };
+
+  const saveEdit = (id: string) => {
+    const trimmedName = editName.trim().slice(0, 100);
+    const cleanedPhone = editPhone.replace(/[^\d+\-\s()]/g, '').trim().slice(0, 20);
+    if (!trimmedName) {
+      toast.error("Name cannot be empty");
+      return;
+    }
+    const members = getMembers();
+    const idx = members.findIndex(m => m.id === id);
+    if (idx !== -1) {
+      members[idx].name = trimmedName;
+      members[idx].phone_number = cleanedPhone;
+      members[idx].tshirt_size = editSize;
+      saveMembers(members);
+    }
+    setEditingId(null);
+    refreshResults();
+    onRefresh?.();
+    toast.success("Member updated!");
+  };
+
+  const cancelEdit = () => setEditingId(null);
 
   return (
     <motion.div
@@ -58,20 +102,55 @@ const MemberSearch = ({ onSelect }: MemberSearchProps) => {
             initial={{ opacity: 0, y: 5 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="space-y-2 max-h-60 overflow-y-auto"
+            className="space-y-2 max-h-[400px] overflow-y-auto"
           >
             {results.map((member) => (
-              <button
-                key={member.id}
-                onClick={() => onSelect(member)}
-                className="w-full text-left p-4 bg-card rounded-xl border border-border hover:border-primary hover:bg-primary/5 transition-all"
-              >
-                <div className="font-semibold text-card-foreground">{member.name}</div>
-                <div className="text-sm text-muted-foreground">{member.phone_number}</div>
-                {member.is_submitted && (
-                  <div className="text-xs text-accent font-medium mt-1">✓ Already submitted</div>
+              <div key={member.id} className="bg-card rounded-xl border border-border overflow-hidden">
+                {editingId === member.id ? (
+                  <div className="p-4 space-y-3">
+                    <div>
+                      <label className="text-xs text-muted-foreground mb-1 block">Name</label>
+                      <Input value={editName} onChange={e => setEditName(e.target.value)} className="h-9 text-sm" maxLength={100} />
+                    </div>
+                    <div>
+                      <label className="text-xs text-muted-foreground mb-1 block">Phone Number</label>
+                      <Input value={editPhone} onChange={e => setEditPhone(e.target.value)} placeholder="Enter phone number" className="h-9 text-sm" maxLength={20} />
+                    </div>
+                    <div>
+                      <label className="text-xs text-muted-foreground mb-1 block">T-Shirt Size</label>
+                      <div className="flex gap-2 flex-wrap">
+                        {SIZES.map(s => (
+                          <Button key={s} size="sm" variant={editSize === s ? "default" : "outline"} onClick={() => setEditSize(s)} className="text-xs h-8 px-3">{s}</Button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="flex gap-2 justify-end">
+                      <Button size="sm" variant="ghost" onClick={cancelEdit} className="gap-1"><X className="h-3.5 w-3.5" /> Cancel</Button>
+                      <Button size="sm" onClick={() => saveEdit(member.id)} className="gap-1"><Check className="h-3.5 w-3.5" /> Save</Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between p-4">
+                    <button
+                      onClick={() => !member.is_submitted && onSelect(member)}
+                      className="flex-1 text-left"
+                    >
+                      <div className="font-semibold text-card-foreground">{member.name}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {member.phone_number ? maskPhone(member.phone_number) : "No phone"}
+                      </div>
+                      {member.is_submitted && (
+                        <div className="text-xs font-medium mt-1 text-primary">
+                          ✓ Submitted: {member.tshirt_size}
+                        </div>
+                      )}
+                    </button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => startEdit(member)}>
+                      <Pencil className="h-4 w-4 text-muted-foreground" />
+                    </Button>
+                  </div>
                 )}
-              </button>
+              </div>
             ))}
           </motion.div>
         )}
