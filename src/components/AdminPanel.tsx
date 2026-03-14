@@ -1,9 +1,14 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Lock, Download, Edit2, Check, X } from "lucide-react";
+import { Lock, Download, Edit2, Check, X, Filter } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { getMembers, updateMemberSize, exportCSV, type TShirtSize, type Member } from "@/lib/members";
+import { Badge } from "@/components/ui/badge";
+import {
+  getMembers, updateMemberSize, updateMemberStatus, bulkUpdateStatus, exportCSV,
+  type TShirtSize, type Member, type OrderStatus, ORDER_STATUSES,
+} from "@/lib/members";
 
 const ADMIN_PASS = "mannai2026";
 const SIZES: TShirtSize[] = ['S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
@@ -12,21 +17,36 @@ interface AdminPanelProps {
   onClose: () => void;
 }
 
+const StatusBadge = ({ status, onClick }: { status: OrderStatus; onClick?: () => void }) => {
+  const cfg = ORDER_STATUSES.find(s => s.value === status)!;
+  return (
+    <button
+      onClick={onClick}
+      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold transition-colors ${cfg.color} ${onClick ? 'cursor-pointer hover:opacity-80' : ''}`}
+    >
+      {cfg.label}
+    </button>
+  );
+};
+
 const AdminPanel = ({ onClose }: AdminPanelProps) => {
   const [authed, setAuthed] = useState(false);
   const [pass, setPass] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editSize, setEditSize] = useState<TShirtSize | null>(null);
   const [members, setMembers] = useState<Member[]>(getMembers());
+  const [filterStatus, setFilterStatus] = useState<OrderStatus | 'all'>('all');
 
   const handleAuth = () => {
     if (pass === ADMIN_PASS) setAuthed(true);
   };
 
+  const refresh = () => setMembers(getMembers());
+
   const handleSave = (id: string) => {
     if (editSize) {
       updateMemberSize(id, editSize);
-      setMembers(getMembers());
+      refresh();
     }
     setEditingId(null);
     setEditSize(null);
@@ -41,6 +61,21 @@ const AdminPanel = ({ onClose }: AdminPanelProps) => {
     a.download = "jci-mannai-tshirt-sizes.csv";
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const handleBulkStatus = (status: OrderStatus) => {
+    const label = ORDER_STATUSES.find(s => s.value === status)!.label;
+    const count = members.filter(m => m.is_submitted).length;
+    bulkUpdateStatus(status);
+    refresh();
+    toast.success(`All ${count} members set to "${label}"`);
+  };
+
+  const handleIndividualStatus = (id: string, current: OrderStatus) => {
+    const order: OrderStatus[] = ['pending', 'printing', 'ready', 'distributed'];
+    const nextIdx = (order.indexOf(current) + 1) % order.length;
+    updateMemberStatus(id, order[nextIdx]);
+    refresh();
   };
 
   if (!authed) {
@@ -72,6 +107,13 @@ const AdminPanel = ({ onClose }: AdminPanelProps) => {
   }
 
   const submitted = members.filter(m => m.is_submitted);
+  const filtered = filterStatus === 'all' ? submitted : submitted.filter(m => m.order_status === filterStatus);
+
+  // Status counts
+  const statusCounts = ORDER_STATUSES.map(s => ({
+    ...s,
+    count: submitted.filter(m => m.order_status === s.value).length,
+  }));
 
   return (
     <motion.div
@@ -79,6 +121,7 @@ const AdminPanel = ({ onClose }: AdminPanelProps) => {
       animate={{ opacity: 1 }}
       className="space-y-4"
     >
+      {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-foreground">Admin Panel</h2>
         <div className="flex gap-2">
@@ -89,44 +132,98 @@ const AdminPanel = ({ onClose }: AdminPanelProps) => {
         </div>
       </div>
 
-      <div className="space-y-2 max-h-96 overflow-y-auto">
-        {submitted.length === 0 && (
-          <p className="text-center text-muted-foreground py-4">No submissions yet.</p>
+      {/* Status Summary Cards */}
+      <div className="grid grid-cols-4 gap-2">
+        {statusCounts.map(s => (
+          <div key={s.value} className={`rounded-xl p-2 text-center ${s.color}`}>
+            <div className="text-lg font-bold">{s.count}</div>
+            <div className="text-[10px] font-medium">{s.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Bulk Status Update */}
+      <div className="space-y-2">
+        <p className="text-xs font-medium text-muted-foreground">Bulk Update All:</p>
+        <div className="flex flex-wrap gap-1.5">
+          {ORDER_STATUSES.map(s => (
+            <button
+              key={s.value}
+              onClick={() => handleBulkStatus(s.value)}
+              className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${s.color} hover:opacity-80 border border-border`}
+            >
+              Set All → {s.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Filter */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <Filter className="h-3.5 w-3.5 text-muted-foreground" />
+        <button
+          onClick={() => setFilterStatus('all')}
+          className={`rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors ${
+            filterStatus === 'all' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+          }`}
+        >
+          All ({submitted.length})
+        </button>
+        {statusCounts.map(s => (
+          <button
+            key={s.value}
+            onClick={() => setFilterStatus(s.value)}
+            className={`rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors ${
+              filterStatus === s.value ? 'bg-primary text-primary-foreground' : s.color
+            }`}
+          >
+            {s.label} ({s.count})
+          </button>
+        ))}
+      </div>
+
+      {/* Members List */}
+      <div className="space-y-2 max-h-72 overflow-y-auto">
+        {filtered.length === 0 && (
+          <p className="text-center text-muted-foreground py-4">No members found.</p>
         )}
         <AnimatePresence>
-          {submitted.map((m) => (
+          {filtered.map((member) => (
             <motion.div
-              key={m.id}
+              key={member.id}
               layout
-              className="flex items-center justify-between p-3 bg-card rounded-xl border border-border"
+              className="flex items-center justify-between p-3 bg-card rounded-xl border border-border gap-2"
             >
               <div className="flex-1 min-w-0">
-                <div className="font-medium text-sm text-card-foreground truncate">{m.name}</div>
-                <div className="text-xs text-muted-foreground">{m.phone_number}</div>
+                <div className="font-medium text-sm text-card-foreground truncate">{member.name}</div>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <span className="text-xs font-bold text-primary">{member.tshirt_size}</span>
+                  <StatusBadge
+                    status={member.order_status}
+                    onClick={() => handleIndividualStatus(member.id, member.order_status)}
+                  />
+                </div>
               </div>
 
-              {editingId === m.id ? (
+              {editingId === member.id ? (
                 <div className="flex items-center gap-1">
                   <select
                     className="h-8 px-2 rounded border border-border bg-card text-sm text-card-foreground"
-                    value={editSize || m.tshirt_size || ''}
+                    value={editSize || member.tshirt_size || ''}
                     onChange={(e) => setEditSize(e.target.value as TShirtSize)}
                   >
                     {SIZES.map(s => <option key={s} value={s}>{s}</option>)}
                   </select>
-                  <button onClick={() => handleSave(m.id)} className="p-1 text-accent"><Check className="h-4 w-4" /></button>
+                  <button onClick={() => handleSave(member.id)} className="p-1 text-accent"><Check className="h-4 w-4" /></button>
                   <button onClick={() => setEditingId(null)} className="p-1 text-muted-foreground"><X className="h-4 w-4" /></button>
                 </div>
               ) : (
-                <div className="flex items-center gap-2">
-                  <span className="font-bold text-sm text-primary">{m.tshirt_size}</span>
-                  <button
-                    onClick={() => { setEditingId(m.id); setEditSize(m.tshirt_size); }}
-                    className="p-1 text-muted-foreground hover:text-foreground"
-                  >
-                    <Edit2 className="h-4 w-4" />
-                  </button>
-                </div>
+                <button
+                  onClick={() => { setEditingId(member.id); setEditSize(member.tshirt_size); }}
+                  className="p-1 text-muted-foreground hover:text-foreground"
+                >
+                  <Edit2 className="h-4 w-4" />
+                </button>
               )}
             </motion.div>
           ))}
