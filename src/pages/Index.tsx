@@ -95,7 +95,7 @@ const Index = () => {
               </Button>
 
               <SizeChart />
-              <SubmissionList />
+              <SubmissionList onViewAll={() => setStep("allSubmissions")} />
 
               {/* Admin & Share */}
               <div className="flex gap-3 pt-4">
