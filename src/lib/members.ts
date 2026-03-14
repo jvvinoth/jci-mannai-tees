@@ -110,6 +110,15 @@ export function saveMembers(members: Member[]) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(members));
 }
 
+export function updateMemberPhone(memberId: string, phone: string) {
+  const members = getMembers();
+  const idx = members.findIndex(m => m.id === memberId);
+  if (idx !== -1) {
+    members[idx].phone_number = phone.trim();
+    saveMembers(members);
+  }
+}
+
 export function findMember(query: string): Member[] {
   const members = getMembers();
   const q = query.toLowerCase().trim();
