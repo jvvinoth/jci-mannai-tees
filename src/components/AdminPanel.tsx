@@ -203,7 +203,7 @@ const AdminPanel = ({ onClose }: AdminPanelProps) => {
                   <span className="text-xs font-bold text-primary">{member.tshirt_size}</span>
                   <StatusBadge
                     status={member.order_status}
-                    onClick={() => handleIndividualStatus(member.id, member.order_status)}
+                    onChange={(s) => { updateMemberStatus(member.id, s); refresh(); }}
                   />
                 </div>
               </div>
