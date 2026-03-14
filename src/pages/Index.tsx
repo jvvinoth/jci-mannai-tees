@@ -22,7 +22,7 @@ const Index = () => {
   const [, setRefresh] = useState(0);
 
   const members = getMembers();
-  const total = members.length;
+  const total = 84; // Fixed total members count
   const submitted = members.filter((m) => m.is_submitted).length;
 
   const forceRefresh = useCallback(() => setRefresh((r) => r + 1), []);
